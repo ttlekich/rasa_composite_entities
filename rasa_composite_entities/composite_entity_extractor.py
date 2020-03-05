@@ -70,7 +70,9 @@ class CompositeEntityExtractor(EntityExtractor):
         try:
             files = [self.component_config[COMPOSITE_PATTERNS_PATH]]
         except:
-            warnings.warn("No composite entity patterns path set in config.yml")
+            warnings.warn(
+                "No composite entity patterns path set in config.yml"
+            )
             try:
                 files = self._get_train_files_cmd()
             except:
@@ -82,7 +84,7 @@ class CompositeEntityExtractor(EntityExtractor):
                         "The CompositeEntityExtractor could not load "
                         "the train file."
                     )
-                    return [] 
+                    return []
         composite_entities = []
         for file in files:
             file_content = read_json_file(file)
@@ -183,7 +185,9 @@ class CompositeEntityExtractor(EntityExtractor):
 
     def _find_composite_entities(self, message):
         """Find all composite entities in a message."""
-        entities = message.get("entities", [])
+        entities = list(
+            sorted(message.get("entities", []), key=lambda x: x["start"])
+        )
         if not entities:
             return
 
@@ -226,10 +230,12 @@ class CompositeEntityExtractor(EntityExtractor):
                 )
                 processed_composite_entities.append(
                     {
+                        "start": contained_entities[0]["start"],
+                        "end": contained_entities[-1]["end"],
                         "confidence": 1.0,
                         "entity": composite_entity["name"],
                         "extractor": "composite",
-                        "contained_entities": contained_entities,
+                        "value": contained_entities,
                     }
                 )
             used_entity_indices += list(
